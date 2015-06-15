@@ -21,13 +21,15 @@ object SwaggerValidatorPlugin extends AutoPlugin {
   object autoImport {
     val validate = taskKey[Unit]("Validates swagger specifications.")
     val swaggerFiles = settingKey[Seq[String]]("Validate swagger specs.")
+    val deepValidation = settingKey[Boolean]("Validate deeply")
 
     // default values for the tasks and settings
     lazy val baseValidateSwaggerSettings: Seq[Def.Setting[_]] = Seq(
       validate := {
-        ValidateSwagger((swaggerFiles in validate).value, (baseDirectory in validate).value)
+        ValidateSwagger((swaggerFiles in validate).value, (baseDirectory in validate).value, (deepValidation in validate).value)
       },
       swaggerFiles in validate := Seq(s"*$YAML", s"*$JSON"),
+      deepValidation in validate := true,
       baseDirectory in validate := sourceDirectory.value
     )
   }
@@ -56,38 +58,44 @@ object ValidateSwagger {
 
   val swaggerSchemaUrl = "https://raw.githubusercontent.com/swagger-api/swagger-spec/master/schemas/v2.0/schema.json"
 
-  def apply(sources: Seq[String], base: File): Unit = sources match {
-    case a if a.nonEmpty => validateFiles (files(sources, base).get) foreach failIfUnsuccessful
+  def apply(sources: Seq[String], base: File, deep: Boolean): Unit = sources match {
+    case a if a.nonEmpty => validateFiles (files(sources, base).get, deep) foreach failIfUnsuccessful
     case o =>
   }
 
   def files(sources: Seq[String], base: File): PathFinder =
     base ** sources.map(globFilter).reduce(_ | _)
 
-  def failIfUnsuccessful(report: ProcessingReport) =
-    if (!report.isSuccess) {
-      println(report)
+  def failIfUnsuccessful(report: (ProcessingReport, String)) =
+    if (!report._1.isSuccess) {
+      println(s"Validation FAILURE: ${report._2}" )
+      println(report._1)
       throw new IllegalStateException("Swagger validation failed")
+    } else {
+      println(s"Validation success: ${report._2}" )
     }
 
-  def validateFiles(files: Seq[File]) = if (files.nonEmpty) {
-    val byType = files partition { _.name.endsWith(YAML) }
-    val jsonStrings = (byType._1 map read(yamlMapper)) :: (byType._2 map read(jsonMapper)) :: Nil
-    jsonStrings.flatten map validateJson
+  def validateFiles(files: Seq[File], deep: Boolean) = if (files.nonEmpty) {
+    val names = files map (_.getAbsolutePath)
+    val mappers = names map mapperByName
+    val jsonStrings = mappers zip files map read
+    jsonStrings map validateJson(deep) zip names
   } else Nil
 
-  def read(mapper: ObjectMapper)(file: File) = {
-    val node = mapper.readTree(file)
+  def read(mapperAndFile: (ObjectMapper, File)) = {
+    val node = mapperAndFile._1.readTree(mapperAndFile._2)
     new ObjectMapper().writeValueAsString(node)
   }
+
+  def mapperByName(name: String) = if (name.endsWith(YAML)) yamlMapper else jsonMapper
 
   val yamlMapper = new ObjectMapper(new YAMLFactory())
   val jsonMapper = new ObjectMapper
 
-  def validateJson(jsonString: String): ProcessingReport = {
+  def validateJson(deep: Boolean)(jsonString: String): ProcessingReport = {
     val json = JsonLoader.fromString(jsonString)
     val factory = JsonSchemaFactory.byDefault()
     val schema = factory.getJsonSchema(swaggerSchemaUrl)
-    schema.validate(json, true)
+    schema.validate(json, deep)
   }
 }

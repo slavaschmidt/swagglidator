@@ -4,6 +4,8 @@ name := "sbt-swagglidator"
 
 organization := "de.zalando"
 
+version := "0.1"
+
 libraryDependencies ++= Seq(
   "com.github.fge"                    % "json-schema-validator"   % "2.2.6",
   "com.fasterxml.jackson.core"        % "jackson-databind"        % "2.4.4",
