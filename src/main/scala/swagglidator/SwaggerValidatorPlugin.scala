@@ -68,11 +68,11 @@ object ValidateSwagger {
 
   def failIfUnsuccessful(report: (ProcessingReport, String)) =
     if (!report._1.isSuccess) {
-      println(s"Validation FAILURE: ${report._2}" )
-      println(report._1)
+      streams.value.log.error(s"Validation FAILURE: ${report._2}" )
+      streams.value.log.info(report._1.toString)
       throw new IllegalStateException("Swagger validation failed")
     } else {
-      println(s"Validation success: ${report._2}" )
+      streams.value.log.info(s"Validation success: ${report._2}" )
     }
 
   def validateFiles(files: Seq[File], deep: Boolean) = if (files.nonEmpty) {
