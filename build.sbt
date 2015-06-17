@@ -1,3 +1,5 @@
+scalaVersion := "2.10.4"
+
 sbtPlugin := true
 
 name := "sbt-swagglidator"
