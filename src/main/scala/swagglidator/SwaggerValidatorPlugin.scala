@@ -26,7 +26,7 @@ object SwaggerValidatorPlugin extends AutoPlugin {
     // default values for the tasks and settings
     lazy val baseValidateSwaggerSettings: Seq[Def.Setting[_]] = Seq(
       validate := {
-        ValidateSwagger((swaggerFiles in validate).value, (baseDirectory in validate).value, (deepValidation in validate).value)
+        ValidateSwagger((swaggerFiles in validate).value, (baseDirectory in validate).value, (deepValidation in validate).value, streams.value.log)
       },
       swaggerFiles in validate := Seq(s"*$YAML", s"*$JSON"),
       deepValidation in validate := true,
@@ -58,21 +58,21 @@ object ValidateSwagger {
 
   val swaggerSchemaUrl = "https://raw.githubusercontent.com/swagger-api/swagger-spec/master/schemas/v2.0/schema.json"
 
-  def apply(sources: Seq[String], base: File, deep: Boolean): Unit = sources match {
-    case a if a.nonEmpty => validateFiles (files(sources, base).get, deep) foreach failIfUnsuccessful
+  def apply(sources: Seq[String], base: File, deep: Boolean, log: Logger): Unit = sources match {
+    case a if a.nonEmpty => validateFiles (files(sources, base).get, deep) foreach failIfUnsuccessful(log)
     case o =>
   }
 
   def files(sources: Seq[String], base: File): PathFinder =
     base ** sources.map(globFilter).reduce(_ | _)
 
-  def failIfUnsuccessful(report: (ProcessingReport, String)) =
+  def failIfUnsuccessful(log: Logger)(report: (ProcessingReport, String)) =
     if (!report._1.isSuccess) {
-      streams.value.log.error(s"Validation FAILURE: ${report._2}" )
-      streams.value.log.info(report._1.toString)
+      log.error(s"Validation FAILURE: ${report._2}" )
+      log.info(report._1.toString)
       throw new IllegalStateException("Swagger validation failed")
     } else {
-      streams.value.log.info(s"Validation success: ${report._2}" )
+      log.info(s"Validation success: ${report._2}" )
     }
 
   def validateFiles(files: Seq[File], deep: Boolean) = if (files.nonEmpty) {
