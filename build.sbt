@@ -16,3 +16,5 @@ libraryDependencies ++= Seq(
   "com.fasterxml.jackson.dataformat" % "jackson-dataformat-yaml" % "2.9.7",
   "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 )
+
+licenses += ("MIT", url("https://opensource.org/licenses/MIT"))
