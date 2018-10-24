@@ -21,7 +21,8 @@ object SwaggerValidatorPlugin extends AutoPlugin {
   object autoImport {
     val validate = taskKey[Unit]("Validates swagger specifications.")
     val swaggerFiles = settingKey[Seq[String]]("Validate swagger specs.")
-    val deepValidation = settingKey[Boolean]("Validate deeply")
+    val deepValidation = settingKey[Boolean]("Validate deeply.")
+    val baseDirectory = settingKey[File]("Root directory to search for files to validate.")
 
     // default values for the tasks and settings
     lazy val baseValidateSwaggerSettings: Seq[Def.Setting[_]] = Seq(
@@ -31,9 +32,9 @@ object SwaggerValidatorPlugin extends AutoPlugin {
                         (deepValidation in validate).value,
                         streams.value.log)
       },
-      swaggerFiles in validate := Seq(s"*$YAML", s"*$JSON"),
-      deepValidation in validate := true,
-      baseDirectory in validate := sourceDirectory.value
+      swaggerFiles in validate := swaggerFiles.?.value.getOrElse(Seq(s"*$YAML", s"*$JSON")),
+      deepValidation in validate := deepValidation.?.value.getOrElse(true),
+      baseDirectory in validate := baseDirectory.?.value.getOrElse(sourceDirectory.value)
     )
   }
 
