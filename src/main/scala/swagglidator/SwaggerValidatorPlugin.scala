@@ -12,8 +12,8 @@ import sbt._
 import sbt.Keys._
 
 /**
- * @since 12.06.2015
- */
+  * @since 12.06.2015
+  */
 object SwaggerValidatorPlugin extends AutoPlugin {
 
   import ValidateSwagger._
@@ -26,7 +26,10 @@ object SwaggerValidatorPlugin extends AutoPlugin {
     // default values for the tasks and settings
     lazy val baseValidateSwaggerSettings: Seq[Def.Setting[_]] = Seq(
       validate := {
-        ValidateSwagger((swaggerFiles in validate).value, (baseDirectory in validate).value, (deepValidation in validate).value, streams.value.log)
+        ValidateSwagger((swaggerFiles in validate).value,
+                        (baseDirectory in validate).value,
+                        (deepValidation in validate).value,
+                        streams.value.log)
       },
       swaggerFiles in validate := Seq(s"*$YAML", s"*$JSON"),
       deepValidation in validate := true,
@@ -56,10 +59,16 @@ object ValidateSwagger {
   val YAML = ".yaml"
   val JSON = ".json"
 
-  val swaggerSchemaUrl = "https://raw.githubusercontent.com/swagger-api/swagger-spec/master/schemas/v2.0/schema.json"
+  val swaggerSchemaUrl =
+    "https://raw.githubusercontent.com/swagger-api/swagger-spec/master/schemas/v2.0/schema.json"
 
-  def apply(sources: Seq[String], base: File, deep: Boolean, log: Logger): Unit = sources match {
-    case a if a.nonEmpty => validateFiles (files(sources, base).get, deep) foreach failIfUnsuccessful(log)
+  def apply(sources: Seq[String],
+            base: File,
+            deep: Boolean,
+            log: Logger): Unit = sources match {
+    case a if a.nonEmpty =>
+      validateFiles(files(sources, base).get, deep) foreach failIfUnsuccessful(
+        log)
     case o =>
   }
 
@@ -68,26 +77,28 @@ object ValidateSwagger {
 
   def failIfUnsuccessful(log: Logger)(report: (ProcessingReport, String)) =
     if (!report._1.isSuccess) {
-      log.error(s"Validation FAILURE: ${report._2}" )
+      log.error(s"Validation FAILURE: ${report._2}")
       log.info(report._1.toString)
       throw new IllegalStateException("Swagger validation failed")
     } else {
-      log.info(s"Validation success: ${report._2}" )
+      log.info(s"Validation success: ${report._2}")
     }
 
-  def validateFiles(files: Seq[File], deep: Boolean) = if (files.nonEmpty) {
-    val names = files map (_.getAbsolutePath)
-    val mappers = names map mapperByName
-    val jsonStrings = mappers zip files map read
-    jsonStrings map validateJson(deep) zip names
-  } else Nil
+  def validateFiles(files: Seq[File], deep: Boolean) =
+    if (files.nonEmpty) {
+      val names = files map (_.getAbsolutePath)
+      val mappers = names map mapperByName
+      val jsonStrings = mappers zip files map read
+      jsonStrings map validateJson(deep) zip names
+    } else Nil
 
   def read(mapperAndFile: (ObjectMapper, File)) = {
     val node = mapperAndFile._1.readTree(mapperAndFile._2)
     new ObjectMapper().writeValueAsString(node)
   }
 
-  def mapperByName(name: String) = if (name.endsWith(YAML)) yamlMapper else jsonMapper
+  def mapperByName(name: String) =
+    if (name.endsWith(YAML)) yamlMapper else jsonMapper
 
   val yamlMapper = new ObjectMapper(new YAMLFactory())
   val jsonMapper = new ObjectMapper
