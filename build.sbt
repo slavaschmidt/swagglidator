@@ -1,12 +1,12 @@
-scalaVersion := "2.12.6"
-
 sbtPlugin := true
+
+scalaVersion := "2.12.6"
 
 crossSbtVersions := Seq("0.13.17", "1.2.6")
 
-name := "sbt-swagglidator"
-
 organization := "de.zalando"
+
+name := "sbt-swagglidator"
 
 version := "0.1"
 
