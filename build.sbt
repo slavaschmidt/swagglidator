@@ -21,8 +21,8 @@ libraryDependencies ++= Seq(
 licenses += ("MIT", url("https://opensource.org/licenses/MIT"))
 
 autoAPIMappings := true
-bintrayOrganization := Some("com.dancingcode")
-bintrayRepository := "dancingcode"
+bintrayOrganization := Some("slavaschmidt")
+bintrayRepository := "maven"
 pomIncludeRepository := { _ => false }
 publishArtifact in Test := false
 publishArtifact in (Compile, packageDoc) := true
