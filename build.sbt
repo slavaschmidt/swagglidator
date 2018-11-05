@@ -3,11 +3,11 @@ import sbtrelease.ReleaseStateTransformations._
 
 sbtPlugin := true
 
-scalaVersion := "2.12.6"
+scalaVersion := "2.12.7"
 
 crossSbtVersions := Seq("0.13.17", "1.2.6")
 
-organization := "de.zalando"
+organization := "com.dancingcode"
 
 name := "sbt-swagglidator"
 
@@ -21,8 +21,8 @@ libraryDependencies ++= Seq(
 licenses += ("MIT", url("https://opensource.org/licenses/MIT"))
 
 autoAPIMappings := true
-bintrayOrganization := Some("???")
-bintrayRepository := "???"
+bintrayOrganization := Some("com.dancingcode")
+bintrayRepository := "dancingcode"
 pomIncludeRepository := { _ => false }
 publishArtifact in Test := false
 publishArtifact in (Compile, packageDoc) := true
@@ -32,7 +32,7 @@ developers := List(
   Developer(
     id = "slavaschmidt",
     name = "Slava Schmidt",
-    email = "???",
+    email = "slavaschmidt@gmx.de",
     url = url("https://github.com/slavaschmidt")
   ),
   Developer(
